@@ -4,7 +4,20 @@ app_publisher = "PC-Giga"
 app_description = "Anpassungen für ERPNext Instanz Hanno Keppel"
 app_email = "info@pc-giga.de"
 app_license = "mit"
-# required_apps = []
+required_apps = ["erpnext"]
+
+fixtures = [
+    {
+        "dt": "Custom Field",
+        "filters": [
+            {
+                "module": "Hanno Keppel Anpassungen"
+            }
+        ]
+    }
+]
+
+app_include_js = "/assets/hk_anpassungen/js/autofill_receipttext.js"
 
 # Includes in <head>
 # ------------------

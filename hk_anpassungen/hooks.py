@@ -17,7 +17,15 @@ fixtures = [
     }
 ]
 
+doc_events = {
+    "Lead": {
+        "before_insert": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.set_custom_created_at"
+    }
+}
+
 app_include_js = "/assets/hk_anpassungen/js/autofill_receipttext.js"
+
+after_install = "hk_anpassungen.migrations.after_install.execute"
 
 # Includes in <head>
 # ------------------

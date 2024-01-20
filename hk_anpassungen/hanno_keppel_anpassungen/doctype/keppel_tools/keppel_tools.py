@@ -23,24 +23,27 @@ class KeppelTools(Document):
 	def get_lr_config(self):
 		return frappe.get_single("LeadRebel Settings")
 
+	def _update_lead_owners_job(self):
+		for lead in frappe.get_all("Lead"):
+			lead = frappe.get_doc("Lead", lead.name)
+			lead.update({"lead_owner": self.get_config().lead_owner}).save()
+		frappe.db.commit()
+
 	@frappe.whitelist()
 	def update_lead_owners(self):
 		"""
 		Updates the lead owners of all leads in the system.
 		Uses the User set in the Keppel-Tools document.
 		"""
-		for lead in frappe.get_all("Lead"):
-			lead = frappe.get_doc("Lead", lead.name)
-			lead.update({"lead_owner": self.get_config().lead_owner}).save()
-		frappe.db.commit()
-		frappe.msgprint("Lead owners updated.")
+		frappe.enqueue_doc(
+			"Keppel-Tools",
+			self.name,
+			"_update_lead_owners_job",
+			queue="long",
+			timeout=5000
+		)
 
-	@frappe.whitelist()
-	def update_lead_dates(self):
-		"""
-		Updates all migrated lead dates from WeClapp to custom field.
-		Also updates LeadRebel imported leads.
-		"""
+	def _update_lead_dates_job(self):
 		# WeClapp
 		from weclapp_migration.weclapp.api import Api as WcApi
 		from weclapp_migration.tools.data import get_datetime_from_weclapp_ts
@@ -50,24 +53,43 @@ class KeppelTools(Document):
 				if en_lead:
 					en_lead = frappe.get_doc("Lead", en_lead.name)
 					en_lead.update({"custom_created_at": get_datetime_from_weclapp_ts(wc_lead["createdDate"])}).save()
-
 		# LeadRebel
 		for en_lead in frappe.get_all("Lead", filters={"source": self.get_lr_config().lead_source}, fields=["name"]):
 			en_lead = frappe.get_doc("Lead", en_lead.name)
 			en_lead.update({"custom_created_at": en_lead.creation}).save()
-
 		frappe.db.commit()
-		frappe.msgprint("Lead dates updated.")
 
 	@frappe.whitelist()
-	def update_lr_qualification_status(self):
+	def update_lead_dates(self):
 		"""
-		Updates the qualification status of all leads from LeadRebel in the system to configured status in LeadRebel Settings.
+		Updates all migrated lead dates from WeClapp to custom field.
+		Also updates LeadRebel imported leads.
 		"""
+		frappe.enqueue_doc(
+			"Keppel-Tools",
+			self.name,
+			"_update_lead_dates_job",
+			queue="long",
+			timeout=5000
+		)
+
+	def _update_lr_qualification_status_job(self):
 		config = frappe.get_single("LeadRebel Settings")
 		for lead in frappe.get_all("Lead", filters={"source": config.lead_source}):
 			lead = frappe.get_doc("Lead", lead.name)
 			if lead.qualification_status != "Qualified":
 				lead.update({"qualification_status": config.qualification_status}).save()
 		frappe.db.commit()
-		frappe.msgprint("Lead qualification status updated.")
+
+	@frappe.whitelist()
+	def update_lr_qualification_status(self):
+		"""
+		Updates the qualification status of all leads from LeadRebel in the system to configured status in LeadRebel Settings.
+		"""
+		frappe.enqueue_doc(
+			"Keppel-Tools",
+			self.name,
+			"_update_lr_qualification_status_job",
+			queue="long",
+			timeout=5000
+		)

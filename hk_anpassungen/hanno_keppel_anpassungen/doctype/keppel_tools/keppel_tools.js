@@ -15,5 +15,12 @@ frappe.ui.form.on("Keppel-Tools", {
         frm.add_custom_button(__("Update Qualification Status"), function() {
             frm.call('update_lr_qualification_status');
         });
+        frm.add_custom_button(__("Update HK Custom fields"), function() {
+            frm.call('update_hk_custom_fields');
+        });
+        // add a action to submenu
+        frm.page.add_menu_item(__("Update Lead/Customer City"), function() {
+            frm.call('update_crm_city');
+        });
 	}
 });

@@ -19,7 +19,11 @@ fixtures = [
 
 doc_events = {
     "Lead": {
-        "before_insert": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.set_custom_created_at"
+        "before_insert": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.set_custom_created_at",
+        "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_lead_city"
+    },
+    "Customer": {
+        "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_customer_city"
     }
 }
 

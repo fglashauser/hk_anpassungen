@@ -121,22 +121,20 @@ class KeppelTools(Document):
 				lead.update({"hk_qualification": lead.qualification_status})
 			lead.save()
 		frappe.db.commit()
+		print("+++++++ Updated HK Lead-Type and HK Qualification for all leads.")
 
 	@frappe.whitelist()
 	def update_hk_custom_fields(self):
 		"""
 		Updates HK Lead-Type and HK Qualification fields for all leads in the system.
 		"""
-		for lead in frappe.get_all("Lead"):
-			lead = frappe.get_doc("Lead", lead.name)
-			if lead.type == "Client":
-				lead.update({"hk_type": "Client"})
-			if lead.qualification_status == "Unqualified":
-				lead.update({"hk_qualification": "Unqualified"})
-			else:
-				lead.update({"hk_qualification": "Qualified"})
-			lead.save()
-		frappe.db.commit()
+		frappe.enqueue_doc(
+			"Keppel-Tools",
+			self.name,
+			"_update_hk_custom_fields_job",
+			queue="long",
+			timeout=5000
+		)
 
 	def _update_crm_city_job(self):
 		for lead in frappe.get_all("Lead"):

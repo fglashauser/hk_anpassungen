@@ -30,6 +30,15 @@ def update_customer_city(doc, method):
 		addr = frappe.get_doc("Address", doc.customer_primary_address)
 		doc.city = addr.city
 
+@frappe.whitelist()
+def update_invoice_source(doc, method):
+	"""
+	Updates the source field of the invoice to the source field of the lead.
+	"""
+	if not doc.custom_lead_source:
+		cust = frappe.get_doc("Customer", doc.customer)
+		doc.custom_lead_source = cust.lead_source
+
 class KeppelTools(Document):
 
 	def get_config(self):
@@ -165,4 +174,39 @@ class KeppelTools(Document):
 			queue="long",
 			timeout=5000
 		)
+
+	def _update_lr_source_job(self):
+		for lead in frappe.get_all("Lead"):
+			lead = frappe.get_doc("Lead", lead.name)
+			if lead.source == "LEAD REBEL":
+				lead.update({"source": "LeadRebel"}).save()
+		frappe.db.commit()
+		print("+++++++ Updated Lead Source for all leads.")
+
+	@frappe.whitelist()
+	def update_lr_source(self):
+		frappe.enqueue_doc(
+			"Keppel-Tools",
+			self.name,
+			"_update_lr_source_job",
+			queue="long",
+			timeout=5000
+		)
 		
+	def _update_invoice_source_job(self):
+		for inv in frappe.get_all("Sales Invoice"):
+			inv = frappe.get_doc("Sales Invoice", inv.name)
+			cust = frappe.get_doc("Customer", inv.customer)
+			inv.update({"custom_lead_source": cust.lead_source}).save()
+		frappe.db.commit()
+		print("+++++++ Updated Invoice Source for all invoices.")
+
+	@frappe.whitelist()
+	def update_invoice_source(self):
+		frappe.enqueue_doc(
+			"Keppel-Tools",
+			self.name,
+			"_update_invoice_source_job",
+			queue="long",
+			timeout=5000
+		)

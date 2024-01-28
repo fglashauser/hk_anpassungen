@@ -22,5 +22,11 @@ frappe.ui.form.on("Keppel-Tools", {
         frm.page.add_menu_item(__("Update Lead/Customer City"), function() {
             frm.call('update_crm_city');
         });
+        frm.page.add_menu_item(__("Update LeadRebel Source"), function() {
+            frm.call('update_lr_source');
+        });
+        frm.page.add_menu_item(__("Update Sales Invoice Lead Source"), function() {
+            frm.call('update_invoice_source');
+        });
 	}
 });

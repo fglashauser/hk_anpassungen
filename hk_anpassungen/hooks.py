@@ -24,6 +24,9 @@ doc_events = {
     },
     "Customer": {
         "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_customer_city"
+    },
+    "Sales Invoice": {
+        "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_invoice_source"
     }
 }
 

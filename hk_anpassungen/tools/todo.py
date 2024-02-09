@@ -11,5 +11,5 @@ def delete_done_todos():
     """
     tasks = frappe.get_all("ToDo", filters={"status": ["in", ["Closed", "Cancelled"]]})
     for task in tasks:
-        frappe.delete_doc("ToDo", task.name)
+        frappe.delete_doc("ToDo", task.name, ignore_permissions=True)
     frappe.db.commit()

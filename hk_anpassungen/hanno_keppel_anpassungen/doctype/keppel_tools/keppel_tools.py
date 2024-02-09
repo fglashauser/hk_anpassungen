@@ -13,22 +13,37 @@ def set_custom_created_at(doc, method):
 	doc.custom_created_at = now()
 
 @frappe.whitelist()
-def update_lead_city(doc, method):
+def update_crm_city(doc, method):
 	"""
-	Updates the City field of the lead to the City field of the address.
+	Updates the City field of the lead or customer to the City field of the address.
 	"""
-	addr = next(iter(frappe.get_all("Address", filters={"link_doctype": "Lead", "link_name": doc.name}, fields=["city"])), None)
-	if addr:
-		doc.city = addr.city
+	# Lead updated?
+	if doc.doctype == "Lead":
+		addr = next(iter(frappe.get_all("Address", filters={"link_doctype": "Lead", "link_name": doc.name}, fields=["city"])), None)
+		if addr:
+			doc.city = addr.city
 
-@frappe.whitelist()
-def update_customer_city(doc, method):
-	"""
-	Updates the City field of the customer to the City field of the address.
-	"""
-	if doc.customer_primary_address:
-		addr = frappe.get_doc("Address", doc.customer_primary_address)
-		doc.city = addr.city
+	# Customer updated?
+	elif doc.doctype == "Customer":
+		if doc.customer_primary_address:
+			addr = frappe.get_doc("Address", doc.customer_primary_address)
+			doc.city = addr.city
+
+	# Address updated?
+	elif doc.doctype == "Address":
+		for link in doc.links:
+			if link.link_doctype == "Lead":						# Lead-Address
+				lead = frappe.get_doc("Lead", link.link_name)
+				lead.flags.ignore_validate = True
+				lead.update({"city": doc.city})
+				lead.save()
+			elif link.link_doctype == "Customer":				# Customer-Address
+				cust = frappe.get_doc("Customer", link.link_name)
+				cust.flags.ignore_validate = True
+				if cust.customer_primary_address == doc.name:
+					cust.city = doc.city
+					cust.save()
+
 
 @frappe.whitelist()
 def update_invoice_source(doc, method):
@@ -210,3 +225,8 @@ class KeppelTools(Document):
 			queue="long",
 			timeout=5000
 		)
+
+	@frappe.whitelist()
+	def delete_done_todos(self):
+		from ....tools.todo import delete_done_todos
+		delete_done_todos()

@@ -6,6 +6,10 @@ app_email = "info@pc-giga.de"
 app_license = "mit"
 required_apps = ["erpnext"]
 
+app_include_js = "/assets/hk_anpassungen/js/autofill_receipttext.js"
+
+after_install = "hk_anpassungen.migrations.after_install.execute"
+
 fixtures = [
     {
         "dt": "Custom Field",
@@ -20,19 +24,24 @@ fixtures = [
 doc_events = {
     "Lead": {
         "before_insert": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.set_custom_created_at",
-        "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_lead_city"
+        "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_crm_city"
+    },
+    "Address": {
+        "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_crm_city"
     },
     "Customer": {
-        "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_customer_city"
+        "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_crm_city"
     },
     "Sales Invoice": {
         "validate": "hk_anpassungen.hanno_keppel_anpassungen.doctype.keppel_tools.keppel_tools.update_invoice_source"
     }
 }
 
-app_include_js = "/assets/hk_anpassungen/js/autofill_receipttext.js"
-
-after_install = "hk_anpassungen.migrations.after_install.execute"
+scheduler_events = {
+	"daily": [
+		"hk_anpassungen.tools.todo.delete_done_todos"
+	]
+}
 
 # Includes in <head>
 # ------------------
